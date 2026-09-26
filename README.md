@@ -14,6 +14,8 @@ Usuario → React (Vercel) → HTTPS/JSON → FastAPI (Render) → Servicios →
                                                           ↘ PostgreSQL (Supabase) → Historial / Auditoría
 ```
 
+**Novedades v1.1:** acceso con **DNI + reconocimiento facial** (control de iluminación y prueba de vida), **carnet** con datos de auditoría (actividad de 7 días, usuarios más activos y ubicación del acceso: departamento, distrito y dirección) y **barra de pestañas** en los módulos para que cada sección cargue solo sus datos.
+
 Las 8 fases del Plan Maestro están implementadas; el detalle y la trazabilidad con los requerimientos están en [`docs/DOCUMENTACION_TECNICA.md`](docs/DOCUMENTACION_TECNICA.md).
 
 ---
@@ -62,7 +64,7 @@ git push -u origin main
    | `DEMO_USERS_PASSWORD` | Contraseña para `analista@tecnoandes.pe` y `gerencia@tecnoandes.pe` |
 
    `SECRET_KEY` se genera automáticamente.
-3. Pulse **Apply**. El primer despliegue tarda 3–5 min: instala dependencias, crea las 19 tablas, carga ~2 200 ventas históricas de TecnoAndes y arranca.
+3. Pulse **Apply**. El primer despliegue tarda 3–5 min: instala dependencias, crea las 20 tablas, carga ~2 200 ventas históricas de TecnoAndes y arranca.
 4. Verifique: `https://matrixflow-api.onrender.com/health` debe responder `{"status":"ok","database":true,...}` y `…/docs` muestra la documentación interactiva (Swagger).
    (El nombre exacto de su URL aparece en el panel de Render.)
 
@@ -93,13 +95,28 @@ CORS_ORIGINS=https://matrixflow-enterprise.vercel.app
 
 ### 5. ¡Listo! Ingrese
 
-| Rol | Usuario | Contraseña | Acceso |
-|---|---|---|---|
-| Administrador | `admin@tecnoandes.pe` | la de `ADMIN_PASSWORD` | Todo el sistema |
-| Analista | `analista@tecnoandes.pe` | la de `DEMO_USERS_PASSWORD` | Ventas, inventario, metas, álgebra lineal, historial, reportes |
-| Consulta | `gerencia@tecnoandes.pe` | la de `DEMO_USERS_PASSWORD` | Dashboard y reportes |
+| Rol | Usuario | DNI | Contraseña | Acceso |
+|---|---|---|---|---|
+| Administrador | `admin@tecnoandes.pe` | `70000001` | la de `ADMIN_PASSWORD` | Todo el sistema |
+| Analista | `analista@tecnoandes.pe` | `70000002` | la de `DEMO_USERS_PASSWORD` | Ventas, inventario, metas, álgebra lineal, historial, reportes |
+| Consulta | `gerencia@tecnoandes.pe` | `70000003` | la de `DEMO_USERS_PASSWORD` | Dashboard y reportes |
 
-Después del primer ingreso puede cambiar la contraseña en **Configuración**.
+Todos los roles tienen además **Mi carnet** y **Configuración**. Después del primer ingreso puede cambiar la contraseña en **Configuración → Mi cuenta**.
+
+### 6. Activar el ingreso con DNI + rostro
+
+El rostro se registra una vez por usuario:
+
+1. Ingrese con correo y contraseña → **Configuración → Reconocimiento facial** → acepte el consentimiento → **Iniciar escaneo facial**.
+   (El administrador también puede registrar a otra persona, presente frente a la cámara, en **Usuarios → Biometría facial**. El DNI se edita en **Usuarios**.)
+2. Cierre sesión. En el login, pestaña **DNI + rostro**, escriba el DNI: al completar los 8 dígitos se enciende la cámara.
+3. El sistema verifica **iluminación** (luz insuficiente, exceso de luz, contraluz), **rostro único, centrado y a buena distancia** y una **prueba de vida** (parpadeo o leve giro de cabeza). Al terminar muestra el **carnet** con sus datos, la similitud facial y la ubicación del acceso; luego pulse **Ingresar al sistema**.
+
+> La cámara y la ubicación solo funcionan en **HTTPS** (Vercel ya lo usa) o en `localhost`. El navegador pedirá permiso para ambas.
+>
+> **Privacidad:** no se guardan fotos ni video del escaneo; solo el vector descriptor de 128 números (y una miniatura para el carnet). La comparación se hace en el backend con NumPy (distancia euclidiana, umbral `FACE_MATCH_THRESHOLD`). Tras 5 intentos fallidos el DNI se bloquea 15 minutos.
+>
+> **Ubicación:** con permiso del usuario se usan las coordenadas GPS del dispositivo y se convierten en departamento, provincia, distrito y dirección con OpenStreetMap (Nominatim). Si el usuario no comparte su ubicación, se estima el departamento por la IP (menos preciso).
 
 ### Solución de problemas
 
@@ -110,6 +127,9 @@ Después del primer ingreso puede cambiar la contraseña en **Configuración**.
 | Render: `password authentication failed` | Contraseña mal escrita o con símbolos sin codificar en `DATABASE_URL`. |
 | Render: `Network is unreachable` / timeout | Está usando la conexión *Direct* (IPv6). Use la cadena **Session pooler**. |
 | Render: `SECRET_KEY insegura en producción` | Defina `SECRET_KEY` con 32+ caracteres aleatorios (el Blueprint la genera). |
+| La cámara no se activa en el login | El sitio debe abrirse por `https://`. Revise el permiso de cámara en el candado de la barra de direcciones. |
+| “No se pudo verificar su identidad” | Mejore la luz frontal, mire de frente y verifique que el DNI tenga el rostro registrado. Si cambió mucho su apariencia, elimine y vuelva a registrar el rostro. |
+| El carnet dice “Estimada por IP” | El usuario no permitió la ubicación del navegador; se usa la IP (solo departamento/ciudad). |
 | Al recargar una página de Vercel aparece 404 | Verifique que el *Root Directory* sea `frontend` (allí está `vercel.json`, que redirige las rutas a `index.html`). |
 
 ---
@@ -145,9 +165,9 @@ npm run dev                                            # http://localhost:5173
 ### Pruebas
 
 ```bash
-cd backend && pytest -q                 # 38 pruebas: algoritmos, API, seguridad, aceptación (SQLite por defecto)
+cd backend && pytest -q                 # 48 pruebas: algoritmos, API, seguridad, biometría, ubicación (SQLite por defecto)
 TEST_DATABASE_URL=postgresql://... pytest -q   # las mismas pruebas sobre PostgreSQL
-cd frontend && npm test                 # pruebas de UI y validación (Vitest + Testing Library)
+cd frontend && npm test                 # 13 pruebas de UI, validación, pestañas y biometría (Vitest)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) ejecuta todo automáticamente en cada *push*, con PostgreSQL real.
@@ -160,19 +180,21 @@ GitHub Actions (`.github/workflows/ci.yml`) ejecuta todo automáticamente en cad
 matrixflow-enterprise/
 ├── frontend/                 React + TypeScript (Vercel)
 │   ├── src/
-│   │   ├── components/       UI, layout, editores y vistas de matrices, gráficos
-│   │   ├── pages/            17 pantallas (login, dashboard, empresa, …, configuración)
+│   │   ├── components/       UI, layout, pestañas, escáner facial, carnet, matrices, gráficos
+│   │   ├── lib/              face.ts (face-api), geo.ts (ubicación), utilidades
+│   │   ├── pages/            18 pantallas (login, dashboard, carnet, empresa, …, configuración)
 │   │   ├── hooks/            useAuth (sesión y permisos por rol)
 │   │   ├── services/         Axios + endpoints tipados
 │   │   ├── schemas/          Validación con Zod
 │   │   └── types/            Tipos TypeScript
+│   ├── public/models/        modelos de reconocimiento facial (servidos desde Vercel)
 │   └── vercel.json
 ├── backend/                  FastAPI (Render)
 │   ├── app/
 │   │   ├── api/routes/       auth, users, companies, branches, products, sales, inventory,
 │   │   │                     targets, vectors, matrices, operations, reports, audit
 │   │   ├── core/             configuración, base de datos, JWT, RBAC
-│   │   ├── models/           19 tablas SQLAlchemy
+│   │   ├── models/           20 tablas SQLAlchemy
 │   │   ├── schemas/          Pydantic
 │   │   ├── services/         lógica de negocio, operaciones, analítica, auditoría
 │   │   ├── repositories/     repositorio genérico

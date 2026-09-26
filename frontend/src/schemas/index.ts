@@ -63,6 +63,11 @@ export type ProductForm = z.input<typeof productSchema>
 export const userSchema = z.object({
   email: z.string().trim().email('Correo inválido'),
   full_name: z.string().trim().min(3, 'Mínimo 3 caracteres'),
+  dni: z
+    .string()
+    .trim()
+    .regex(/^(\d{8})?$/, 'El DNI debe tener 8 dígitos')
+    .transform((v) => (v === '' ? null : v)),
   password: z.string().min(8, 'Mínimo 8 caracteres').or(z.literal('')),
   role_id: z.coerce.number().int().positive('Seleccione un rol'),
   is_active: z.boolean(),
@@ -86,3 +91,5 @@ export const movementSchema = z.object({
   reason: z.string().trim().optional(),
 })
 export type MovementForm = z.input<typeof movementSchema>
+
+export const dniSchema = z.string().regex(/^\d{8}$/, 'El DNI debe tener 8 dígitos')

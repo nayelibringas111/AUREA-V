@@ -10,6 +10,25 @@ from fastapi.testclient import TestClient  # noqa: E402
 from app.core.database import Base, SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.seed import seed  # noqa: E402
+from app.services import geo_service as _geo  # noqa: E402
+
+# Funciones reales (antes de reemplazarlas) para probar el análisis de respuestas en test_geo.py
+REAL_REVERSE_GEOCODE, REAL_IP_LOOKUP = _geo.reverse_geocode, _geo.ip_lookup
+
+FAKE_GEO = {"country": "Perú", "department": "Lima", "province": "Lima", "district": "Santiago de Surco",
+            "address": "Avenida Javier Prado Este 4200"}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def no_network_geo():
+    """Evita llamadas reales a Nominatim / ipapi durante las pruebas."""
+    from app.services import geo_service
+
+    mp = pytest.MonkeyPatch()
+    mp.setattr(geo_service, "reverse_geocode", lambda lat, lon: dict(FAKE_GEO))
+    mp.setattr(geo_service, "ip_lookup", lambda ip: {})
+    yield
+    mp.undo()
 
 
 @pytest.fixture(scope="session", autouse=True)

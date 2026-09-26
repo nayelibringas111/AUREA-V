@@ -11,6 +11,9 @@ export interface User {
   id: number
   email: string
   full_name: string
+  dni: string | null
+  face_enrolled: boolean
+  face_enrolled_at: string | null
   is_active: boolean
   company_id: number | null
   last_login: string | null
@@ -317,4 +320,77 @@ export interface OperationsStats {
   errors: number
   success_rate: number | null
   by_type: { operation_type: string; success: number; error: number; avg_ms: number }[]
+}
+
+export interface LoginSession {
+  id: number
+  method: 'password' | 'face'
+  status: 'success' | 'error'
+  reason: string | null
+  ip_address: string | null
+  location_source: 'gps' | 'ip' | 'none' | null
+  country: string | null
+  department: string | null
+  province: string | null
+  district: string | null
+  address: string | null
+  latitude: number | null
+  longitude: number | null
+  accuracy_m: number | null
+  face_distance: number | null
+  created_at: string | null
+  user?: string | null
+  identifier?: string | null
+}
+
+export interface DayActivity {
+  date: string
+  events: number
+  logins: number
+  operations: number
+}
+
+export interface TopUser {
+  user_id: number
+  name: string
+  role: RoleName
+  events: number
+  operations: number
+}
+
+export interface Carnet {
+  code: string
+  verification: string
+  issued_at: string
+  valid_until: string
+  user: { id: number; full_name: string; email: string; dni: string | null; role: RoleName; photo: string | null; face_enrolled: boolean; member_since: string | null }
+  company: { name: string; legal_name: string | null; ruc: string | null } | null
+  current_session: LoginSession | null
+  recent_sessions: LoginSession[]
+  activity_7d: DayActivity[]
+  company_activity_7d: DayActivity[]
+  totals_7d: { events: number; logins: number; operations: number }
+  modules_7d: { module: string; events: number }[]
+  top_users: TopUser[]
+}
+
+export interface FaceMatch {
+  distance: number
+  similarity: number
+  threshold: number
+}
+
+export interface Kpis {
+  period: string
+  kpis: { revenue: number; units: number; sales_count: number; avg_ticket: number; gross_margin: number; margin_pct: number; compliance_pct: number | null; low_stock: number }
+  compliance_by_branch: ComplianceRow[]
+}
+
+export interface RecentActivity {
+  id: number
+  user: string | null
+  action: string
+  module: string
+  status: string
+  created_at: string | null
 }

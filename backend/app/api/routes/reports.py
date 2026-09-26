@@ -35,6 +35,16 @@ def dashboard(period: str | None = PERIOD, db: Session = Depends(get_db), user: 
     return an.dashboard(db, company_id_of(user), period)
 
 
+@router.get("/kpis")
+def kpis(period: str | None = PERIOD, db: Session = Depends(get_db), user: User = Depends(any_role)):
+    return an.kpis(db, company_id_of(user), period)
+
+
+@router.get("/recent-activity")
+def recent_activity(limit: int = Query(10, ge=1, le=50), db: Session = Depends(get_db), user: User = Depends(any_role)):
+    return an.recent_activity(db, company_id_of(user), limit)
+
+
 @router.get("/sales-by-branch")
 def sales_by_branch(date_from: dt.date | None = None, date_to: dt.date | None = None, db: Session = Depends(get_db),
                     user: User = Depends(any_role)):

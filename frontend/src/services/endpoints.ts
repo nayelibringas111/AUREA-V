@@ -1,6 +1,14 @@
 import { api } from './api'
+import type { GeoPoint } from '@/lib/geo'
 import type {
   AuditLog,
+  Carnet,
+  DayActivity,
+  FaceMatch,
+  Kpis,
+  LoginSession,
+  RecentActivity,
+  TopUser,
   Branch,
   Category,
   Company,
@@ -30,10 +38,20 @@ const put = <T>(url: string, body?: unknown) => api.put<T>(url, body).then((r) =
 const patch = <T>(url: string, body?: unknown) => api.patch<T>(url, body).then((r) => r.data)
 const del = (url: string) => api.delete(url).then(() => undefined)
 
+export interface FaceLoginBody {
+  dni: string
+  descriptor: number[]
+  liveness: boolean
+  brightness?: number
+  location?: GeoPoint | null
+}
 export const authApi = {
-  login: (email: string, password: string) =>
-    post<{ access_token: string; user: User; expires_in: number }>('/auth/login', { email, password }),
+  login: (email: string, password: string, location?: GeoPoint | null) =>
+    post<{ access_token: string; user: User; expires_in: number }>('/auth/login', { email, password, location: location ?? undefined }),
+  faceLogin: (b: FaceLoginBody) =>
+    post<{ access_token: string; user: User; expires_in: number; match: FaceMatch }>('/auth/face-login', { ...b, location: b.location ?? undefined }),
   me: () => get<User>('/auth/me'),
+  carnet: () => get<Carnet>('/auth/carnet'),
   changePassword: (current_password: string, new_password: string) =>
     post('/auth/change-password', { current_password, new_password }),
 }
@@ -128,6 +146,12 @@ export const operationApi = {
 }
 
 export const reportApi = {
+  kpis: (period?: string) => get<Kpis>('/reports/kpis', { period }),
+  recentActivity: (limit = 10) => get<RecentActivity[]>('/reports/recent-activity', { limit }),
+  salesByBranch: (date_from?: string, date_to?: string) =>
+    get<{ formula: string; items: { branch: string; amount: number; units: number; share: number }[] }>('/reports/sales-by-branch', { date_from, date_to }),
+  salesByProduct: (date_from?: string, date_to?: string) =>
+    get<{ formula: string; items: { product: string; amount: number; units: number; share: number }[] }>('/reports/sales-by-product', { date_from, date_to }),
   dashboard: (period?: string) => get<Dashboard>('/reports/dashboard', { period }),
   compliance: (period?: string) => get<Compliance>('/reports/target-compliance', { period }),
   rotation: (days = 30) => get<Rotation>('/reports/inventory-rotation', { days }),
@@ -137,15 +161,29 @@ export const reportApi = {
   operations: () => get<OperationsStats>('/reports/operations-stats'),
 }
 
+export interface FaceEnrollBody {
+  descriptors: number[][]
+  photo: string | null
+  consent: boolean
+  brightness?: number
+}
 export const userApi = {
   list: () => get<User[]>('/users'),
+  enrollMe: (b: FaceEnrollBody) => post<User>('/users/me/face', b),
+  deleteMyFace: () => del('/users/me/face'),
+  enrollUser: (id: number, b: FaceEnrollBody) => post<User>(`/users/${id}/face`, b),
+  deleteUserFace: (id: number) => del(`/users/${id}/face`),
   roles: () => get<Role[]>('/users/roles'),
-  create: (d: { email: string; full_name: string; password: string; role_id: number }) => post<User>('/users', d),
-  update: (id: number, d: Partial<{ full_name: string; password: string; role_id: number; is_active: boolean }>) =>
+  create: (d: { email: string; full_name: string; password: string; role_id: number; dni?: string | null }) => post<User>('/users', d),
+  update: (id: number, d: Partial<{ full_name: string; password: string; role_id: number; is_active: boolean; dni: string | null }>) =>
     patch<User>(`/users/${id}`, d),
   remove: (id: number) => del(`/users/${id}`),
 }
 
 export const auditApi = {
   list: (params: { module?: string; status?: string; page?: number; size?: number }) => get<Page<AuditLog>>('/audit', params),
+  sessions: (params: { method?: string; status?: string; page?: number; size?: number }) => get<Page<LoginSession>>('/audit/sessions', params),
+  locations: (days = 30) => get<{ department: string; district: string; logins: number }[]>('/audit/locations', { days }),
+  activity: (days = 7) => get<DayActivity[]>('/audit/activity', { days }),
+  topUsers: (days = 7) => get<TopUser[]>('/audit/top-users', { days }),
 }

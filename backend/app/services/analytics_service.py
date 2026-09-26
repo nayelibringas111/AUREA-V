@@ -254,6 +254,38 @@ def recent_activity(db: Session, cid: int, limit: int = 8) -> list[dict]:
     ]
 
 
+def kpis(db: Session, cid: int, period: str | None = None) -> dict:
+    """Solo los indicadores clave (pestaña Resumen del dashboard)."""
+    period = period or current_period()
+    start, end = period_bounds(period)
+    A, _, _ = _mat(db, cid, "amount", date_from=start, date_to=end)
+    Q, _, _ = _mat(db, cid, "quantity", date_from=start, date_to=end)
+    costs, _, _ = svc.product_vector(db, cid, "unit_cost")
+    revenue = float(A.sum())
+    cost = float(alg.dot_product(Q.sum(axis=0), costs))
+    sales_count = db.scalar(
+        select(func.count()).select_from(Sale).where(
+            Sale.branch_id.in_([b.id for b in svc.active_branches(db, cid)]),
+            Sale.sale_date.between(start, end), Sale.status != "anulada",
+        )
+    ) or 0
+    compliance = target_compliance(db, cid, period)
+    low = db.scalar(
+        select(func.count()).select_from(Inventory).join(Branch, Branch.id == Inventory.branch_id)
+        .where(Branch.company_id == cid, Branch.is_active.is_(True), Inventory.stock <= Inventory.min_stock)
+    ) or 0
+    return {
+        "period": period,
+        "kpis": {
+            "revenue": _r(revenue), "units": int(Q.sum()), "sales_count": sales_count,
+            "avg_ticket": _r(revenue / sales_count) if sales_count else 0,
+            "gross_margin": _r(revenue - cost), "margin_pct": _r((revenue - cost) / revenue * 100) if revenue else 0,
+            "compliance_pct": compliance["total"]["pct"], "low_stock": low,
+        },
+        "compliance_by_branch": compliance["by_branch"],
+    }
+
+
 def dashboard(db: Session, cid: int, period: str | None = None) -> dict:
     period = period or current_period()
     start, end = period_bounds(period)

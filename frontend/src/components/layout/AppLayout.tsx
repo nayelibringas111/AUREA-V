@@ -7,6 +7,7 @@ import {
   FileText,
   Grid3x3,
   History,
+  IdCard,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -40,6 +41,7 @@ interface Group {
 const ic = 'size-4'
 const NAV: (Item | Group)[] = [
   { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className={ic} />, module: 'dashboard' },
+  { to: '/carnet', label: 'Mi carnet', icon: <IdCard className={ic} />, module: 'carnet' },
   {
     label: 'Empresa',
     items: [
@@ -178,7 +180,7 @@ export default function AppLayout() {
             <Outlet />
           </div>
           <footer className="px-8 pb-6 text-center text-xs text-muted">
-            <FileText className="mr-1 inline size-3" /> MatrixFlow Enterprise v1.0 · TecnoAndes Distribuciones S.A.C.
+            <FileText className="mr-1 inline size-3" /> MatrixFlow Enterprise v1.1 · TecnoAndes Distribuciones S.A.C.
           </footer>
         </main>
       </div>

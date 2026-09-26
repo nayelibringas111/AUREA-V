@@ -23,7 +23,7 @@ def test_requires_token(client):
 def test_me_modules_by_role(client, admin, analyst, viewer):
     assert "usuarios" in client.get(f"{API}/auth/me", headers=admin).json()["modules"]
     assert "usuarios" not in client.get(f"{API}/auth/me", headers=analyst).json()["modules"]
-    assert client.get(f"{API}/auth/me", headers=viewer).json()["modules"] == ["dashboard", "reportes"]
+    assert set(client.get(f"{API}/auth/me", headers=viewer).json()["modules"]) == {"dashboard", "reportes", "configuracion", "carnet"}
 
 
 def test_rbac(client, analyst, viewer):

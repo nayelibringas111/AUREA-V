@@ -51,12 +51,12 @@ Todas las fórmulas se ejecutan en el backend con NumPy (`app/services/analytics
 |---|---|---|
 | 1 – Frontend | UI, navegación y módulos | `frontend/src`: 17 pantallas (`/login`, `/dashboard`, `/empresa`, `/sucursales`, `/productos`, `/ventas`, `/inventario`, `/metas`, `/vectores`, `/matrices`, `/operaciones`, `/combinaciones`, `/historial`, `/reportes`, `/usuarios`, `/auditoria`, `/configuracion`), layout responsive con sidebar, identidad visual §8.4 |
 | 2 – Backend | API REST y servicios | `backend/app/api/routes/*` (13 routers), `services/`, `repositories/`, `schemas/` (Pydantic) |
-| 3 – Persistencia | Modelo de datos y migraciones | 19 tablas en `models/`, migraciones Alembic `0001` (esquema) y `0002` (RLS Supabase), `database/schema.sql` |
+| 3 – Persistencia | Modelo de datos y migraciones | 19 tablas en `models/`, migraciones Alembic `0001` (esquema), `0002` (RLS Supabase) y `0003` (biometría y sesiones), `database/schema.sql` |
 | 4 – Álgebra lineal | Algoritmos | `algorithms/vectors.py`, `matrices.py`, `linear_algebra.py` (funciones puras, sin dependencia de BD) |
 | 5 – Integración | React ↔ FastAPI ↔ NumPy ↔ PostgreSQL | TanStack Query + Axios (`services/`), matrices generadas desde ventas, “casos empresariales” en un clic |
 | 6 – Seguridad | JWT + RBAC + auditoría | `core/security.py` (bcrypt + JWT HS256), `core/deps.py` (roles), `services/audit_service.py`, RLS en Supabase |
 | 7 – Analítica | Dashboard y reportes | `services/analytics_service.py`, `/reports/*`, exportación CSV, gráficos Recharts |
-| 8 – Calidad | Pruebas | `backend/tests` (38 pruebas), `frontend/src/__tests__` (9 pruebas), CI en GitHub Actions |
+| 8 – Calidad | Pruebas | `backend/tests` (48 pruebas), `frontend/src/__tests__` (13 pruebas), CI en GitHub Actions |
 
 ## 4. Motor matemático (Fase 4)
 
@@ -86,7 +86,7 @@ Si las dimensiones son incompatibles la operación **también se guarda** con es
 
 ## 5. Modelo de datos (Fase 3)
 
-`users`, `roles`, `companies`, `branches`, `categories`, `products`, `sales`, `sale_details`, `inventory`, `inventory_movements`, `targets`, `vectors`, `vector_values`, `matrices`, `matrix_values`, `operations`, `operation_inputs`, `operation_results`, `audit_logs`.
+`users`, `roles`, `login_sessions`, `companies`, `branches`, `categories`, `products`, `sales`, `sale_details`, `inventory`, `inventory_movements`, `targets`, `vectors`, `vector_values`, `matrices`, `matrix_values`, `operations`, `operation_inputs`, `operation_results`, `audit_logs`.
 
 - Vectores y matrices se almacenan normalizados (`vector_values(position, value)`, `matrix_values(row_index, col_index, value)`), con etiquetas JSON.
 - Registrar una venta descuenta inventario y crea un movimiento `salida`; anularla lo restituye.
@@ -98,7 +98,9 @@ Documentación interactiva en `/docs` (Swagger) y `/redoc`. Prefijo `/api/v1`.
 
 | Método | Ruta | Rol |
 |---|---|---|
-| POST | `/auth/login` · GET `/auth/me` · POST `/auth/change-password` | público / autenticado |
+| POST | `/auth/login`, `/auth/face-login` · GET `/auth/me`, `/auth/carnet` · POST `/auth/change-password` | público / autenticado |
+| POST/DELETE | `/users/me/face` | autenticado |
+| POST/DELETE | `/users/{id}/face` | administrador |
 | GET/POST/PATCH/DELETE | `/users`, `/users/roles` | administrador |
 | GET · PATCH | `/companies`, `/companies/current` | todos · administrador |
 | GET · POST/PATCH/DELETE | `/branches`, `/categories`, `/products` | todos · administrador |
@@ -109,7 +111,7 @@ Documentación interactiva en `/docs` (Swagger) y `/redoc`. Prefijo `/api/v1`.
 | CRUD + POST | `/matrices`, `/matrices/from-sales`, `/matrices/preview-from-sales` | administrador, analista |
 | POST · GET | `/operations`, `/operations/types`, `/operations/{id}` | administrador, analista |
 | GET | `/reports/dashboard`, `sales-by-branch`, `sales-by-product`, `target-compliance`, `inventory-rotation`, `performance-index`, `monthly-trend`, `operations-stats`, `export/{reporte}.csv` | todos |
-| GET | `/audit` | administrador |
+| GET | `/audit`, `/audit/sessions`, `/audit/locations`, `/audit/activity`, `/audit/top-users` | administrador |
 | GET | `/health` | público |
 
 ## 7. Seguridad (Fase 6)
@@ -170,9 +172,66 @@ Documentación interactiva en `/docs` (Swagger) y `/redoc`. Prefijo `/api/v1`.
 | 7 | Integración | Matrices desde ventas, casos empresariales, TanStack Query |
 | 8 | Seguridad y auditoría | JWT, RBAC, auditoría, RLS |
 | 9 | Reportes | Dashboard, cumplimiento, rotación, índice, CSV |
-| 10 | Pruebas y documentación | 47 pruebas, CI, README y esta documentación |
+| 10 | Pruebas y documentación | 61 pruebas, CI, README y esta documentación |
+| 11 | Biometría y carnet (v1.1) | DNI + rostro, iluminación, prueba de vida, ubicación, carnet, pestañas |
 
-## 10. Trabajo futuro
+## 10. Versión 1.1 – Biometría, carnet y pestañas
+
+### 10.1 Acceso con DNI + reconocimiento facial
+
+```
+DNI (8 dígitos) → cámara → face-api (navegador): detección + 68 puntos + descriptor d ∈ ℝ¹²⁸
+   ├─ Iluminación: luminancia media, contraste y contraluz (rostro vs. fondo)
+   ├─ Calidad: un solo rostro, centrado, tamaño adecuado, mirada de frente
+   └─ Prueba de vida: parpadeo relativo a la línea base del usuario o leve giro de cabeza
+→ POST /auth/face-login {dni, d, liveness, brillo, GPS}
+→ Backend (NumPy): distancia = min ‖dᵢ − d‖  (dᵢ = 5 descriptores registrados)
+   distancia ≤ 0.5 → JWT + sesión con ubicación → carnet
+```
+
+| Elemento | Implementación |
+|---|---|
+| Registro | `POST /users/me/face` o `/users/{id}/face` (admin): 3–5 descriptores consistentes entre sí, consentimiento obligatorio (Ley 29733), miniatura para el carnet |
+| Comparación | `services/face_service.py` usa `subtract_vector` y `vector_norm` del motor de álgebra lineal |
+| Protección | Mensaje genérico (no revela si el DNI existe), bloqueo tras 5 fallos en 15 min, auditoría de cada intento |
+| Privacidad | No se guardan imágenes del escaneo; solo vectores. El usuario puede eliminar su biometría |
+| Modelos | `frontend/public/models` (TinyFaceDetector, Landmark68, FaceRecognition); se cargan solo en el escáner |
+
+**Limitación conocida:** el descriptor se calcula en el navegador, por lo que la prueba de vida es básica (no detecta una
+pantalla con video de la persona). Para entornos de alta seguridad se recomienda combinarlo con contraseña (2FA) o usar
+un servicio de verificación con detección de suplantación en el servidor.
+
+### 10.2 Ubicación del acceso
+
+`services/geo_service.py`: coordenadas GPS del navegador (con permiso) → Nominatim/OpenStreetMap → departamento, provincia,
+distrito y dirección. Sin permiso → estimación por IP (ipapi.co). Tiempo máximo 3.5 s; un fallo nunca bloquea el login.
+Cada intento se guarda en la tabla **`login_sessions`** (método, resultado, distancia facial, brillo, IP, ubicación).
+
+### 10.3 Carnet (`GET /auth/carnet`, pantalla `/carnet`)
+
+Identificación (foto, nombre, DNI, rol, código `MF-EE-NNNNN`, vigencia y código de verificación HMAC) + auditoría:
+ubicación del acceso actual, actividad de los últimos 7 días (eventos, accesos y operaciones por día, zona `America/Lima`),
+módulos más usados, **usuarios más activos** y accesos anteriores. Descargable en PNG o imprimible/PDF. Se muestra
+automáticamente al finalizar el reconocimiento facial.
+
+### 10.4 Barra de pestañas por módulo
+
+Componente `ModuleTabs` + hook `useTab` (pestaña en la URL `?tab=`). Solo se monta la pestaña activa, así cada sección
+consulta únicamente su endpoint:
+
+| Módulo | Pestañas |
+|---|---|
+| Dashboard | Resumen (`/reports/kpis`) · Ventas · Inventario · Actividad |
+| Auditoría | Eventos · Accesos y ubicación (`/audit/sessions`, `/audit/locations`) · Actividad 7 días (`/audit/activity`) · Usuarios más activos (`/audit/top-users`) |
+| Usuarios | Usuarios y roles · Biometría facial |
+| Configuración | Mi cuenta · Reconocimiento facial · Sistema |
+| Productos | Productos · Categorías |
+| Inventario | Existencias · Matriz S · Movimientos |
+| Operaciones | Casos empresariales · Operación personalizada |
+| Combinaciones | Índice de desempeño · Combinación libre |
+| Reportes | Cumplimiento · Tendencia · Inventario y rotación · Procesamiento |
+
+## 11. Trabajo futuro
 
 - Exportación a PDF/Excel con formato.
 - Importación masiva de ventas desde CSV.

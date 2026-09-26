@@ -1,16 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Download } from 'lucide-react'
+import { AlertTriangle, Boxes, Cpu, Download, Target, TrendingUp } from 'lucide-react'
+import { ModuleTabs, useTab } from '@/components/ModuleTabs'
 import { useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { axisProps, ChartTooltip, INK, Legend, SERIES, TARGET_GRAY } from '@/components/charts'
 import { MatrixView } from '@/components/MatrixViews'
-import { Badge, Button, Card, ErrorBox, PageHeader, Select, Spinner, StatCard, Table, Tabs, Td, Th } from '@/components/ui'
+import { Badge, Button, Card, ErrorBox, PageHeader, Select, Spinner, StatCard, Table, Td, Th } from '@/components/ui'
 import { integer, lastPeriods, money, moneyShort, monthLabel, number, OPERATION_LABELS, pct } from '@/lib/utils'
 import { downloadFile, errorMessage } from '@/services/api'
 import { reportApi } from '@/services/endpoints'
 import { toast } from 'sonner'
-
-type Tab = 'cumplimiento' | 'tendencia' | 'inventario' | 'procesamiento'
 
 function ExportButton({ report, period }: { report: string; period?: string }) {
   const [busy, setBusy] = useState(false)
@@ -190,7 +189,7 @@ function Procesamiento() {
 }
 
 export default function Reportes() {
-  const [tab, setTab] = useState<Tab>('cumplimiento')
+  const [tab, setTab] = useTab(['cumplimiento', 'tendencia', 'inventario', 'procesamiento'] as const, 'cumplimiento')
   const [period, setPeriod] = useState(lastPeriods(2)[1])
   return (
     <>
@@ -205,14 +204,12 @@ export default function Reportes() {
           )
         }
       />
-      <div className="mb-5">
-        <Tabs value={tab} onChange={setTab} items={[
-          { value: 'cumplimiento', label: 'Cumplimiento de metas' },
-          { value: 'tendencia', label: 'Tendencia' },
-          { value: 'inventario', label: 'Inventario y rotación' },
-          { value: 'procesamiento', label: 'Procesamiento' },
-        ]} />
-      </div>
+      <ModuleTabs value={tab} onChange={setTab} items={[
+        { value: 'cumplimiento', label: 'Cumplimiento de metas', icon: <Target className="size-4" /> },
+        { value: 'tendencia', label: 'Tendencia', icon: <TrendingUp className="size-4" /> },
+        { value: 'inventario', label: 'Inventario y rotación', icon: <Boxes className="size-4" /> },
+        { value: 'procesamiento', label: 'Procesamiento', icon: <Cpu className="size-4" /> },
+      ]} />
       {tab === 'cumplimiento' && <Cumplimiento period={period} />}
       {tab === 'tendencia' && <Tendencia />}
       {tab === 'inventario' && <Inventario />}

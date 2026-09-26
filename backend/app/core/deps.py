@@ -19,13 +19,13 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
     ADMIN: [
         "dashboard", "empresa", "sucursales", "productos", "ventas", "inventario", "metas", "vectores",
         "matrices", "operaciones", "combinaciones", "historial", "reportes", "usuarios", "auditoria",
-        "configuracion",
+        "configuracion", "carnet",
     ],
     ANALYST: [
         "dashboard", "ventas", "inventario", "metas", "vectores", "matrices", "operaciones", "combinaciones",
-        "historial", "reportes",
+        "historial", "reportes", "configuracion", "carnet",
     ],
-    VIEWER: ["dashboard", "reportes"],
+    VIEWER: ["dashboard", "reportes", "configuracion", "carnet"],
 }
 
 bearer = HTTPBearer(auto_error=False)

@@ -30,6 +30,20 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str = "Admin2026!"
     DEMO_USERS_PASSWORD: str = "Demo2026!"
 
+    TIMEZONE: str = "America/Lima"
+
+    # Reconocimiento facial (el navegador calcula el descriptor de 128 dimensiones; el backend compara con NumPy)
+    FACE_LOGIN_ENABLED: bool = True
+    FACE_MATCH_THRESHOLD: float = 0.5  # distancia euclidiana máxima para aceptar la identidad
+    FACE_MAX_FAILED_ATTEMPTS: int = 5  # por DNI en FACE_LOCK_MINUTES
+    FACE_LOCK_MINUTES: int = 15
+
+    # Geolocalización del inicio de sesión (departamento, distrito y dirección)
+    GEOLOCATION_ENABLED: bool = True
+    GEOCODER_URL: str = "https://nominatim.openstreetmap.org/reverse"
+    GEOCODER_CONTACT: str = "soporte@tecnoandes.pe"
+    IP_GEO_URL: str = "https://ipapi.co/{ip}/json/"
+
     @field_validator("DATABASE_URL")
     @classmethod
     def normalize_db_url(cls, v: str) -> str:

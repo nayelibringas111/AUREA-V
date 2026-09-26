@@ -40,3 +40,23 @@ body {
   background: #cbd5e1;
   border-radius: 8px;
 }
+
+/* Impresión del carnet: solo se imprime la tarjeta */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .carnet-print,
+  .carnet-print * {
+    visibility: visible;
+  }
+  .carnet-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    box-shadow: none;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

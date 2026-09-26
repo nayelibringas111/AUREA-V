@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, ArrowDownUp } from 'lucide-react'
+import { AlertTriangle, ArrowDownUp, Boxes, Grid3x3 } from 'lucide-react'
+import { ModuleTabs, useTab } from '@/components/ModuleTabs'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { MatrixView } from '@/components/MatrixViews'
-import { Badge, Button, Card, ErrorBox, Field, Input, Modal, PageHeader, Select, Spinner, Table, Tabs, Td, Th } from '@/components/ui'
+import { Badge, Button, Card, ErrorBox, Field, Input, Modal, PageHeader, Select, Spinner, Table, Td, Th } from '@/components/ui'
 import { dateTime, integer } from '@/lib/utils'
 import { movementSchema, type MovementForm } from '@/schemas'
 import { errorMessage } from '@/services/api'
@@ -65,7 +66,7 @@ function MovementModal({ open, onClose }: { open: boolean; onClose: () => void }
 }
 
 export default function Inventario() {
-  const [tab, setTab] = useState<'stock' | 'matriz' | 'movimientos'>('stock')
+  const [tab, setTab] = useTab(['stock', 'matriz', 'movimientos'] as const, 'stock')
   const [branchId, setBranchId] = useState<number | undefined>()
   const [onlyLow, setOnlyLow] = useState(false)
   const [open, setOpen] = useState(false)
@@ -81,8 +82,12 @@ export default function Inventario() {
         description="Existencias por sucursal y producto (matriz S) y trazabilidad de movimientos."
         actions={<Button icon={<ArrowDownUp className="size-4" />} onClick={() => setOpen(true)}>Nuevo movimiento</Button>}
       />
+      <ModuleTabs value={tab} onChange={setTab} items={[
+        { value: 'stock', label: 'Existencias', icon: <Boxes className="size-4" /> },
+        { value: 'matriz', label: 'Matriz S', icon: <Grid3x3 className="size-4" /> },
+        { value: 'movimientos', label: 'Movimientos', icon: <ArrowDownUp className="size-4" /> },
+      ]} />
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <Tabs value={tab} onChange={setTab} items={[{ value: 'stock', label: 'Existencias' }, { value: 'matriz', label: 'Matriz S' }, { value: 'movimientos', label: 'Movimientos' }]} />
         <Select className="w-52" value={branchId ?? ''} onChange={(e) => setBranchId(e.target.value ? Number(e.target.value) : undefined)} aria-label="Sucursal">
           <option value="">Todas las sucursales</option>
           {branches.data?.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}

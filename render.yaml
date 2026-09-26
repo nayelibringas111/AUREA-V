@@ -36,3 +36,14 @@ services:
         value: "true"
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "480"
+      - key: TIMEZONE
+        value: America/Lima
+      # Reconocimiento facial y ubicación del acceso
+      - key: FACE_LOGIN_ENABLED
+        value: "true"
+      - key: FACE_MATCH_THRESHOLD # distancia euclidiana máxima (menor = más estricto)
+        value: "0.5"
+      - key: GEOLOCATION_ENABLED
+        value: "true"
+      - key: GEOCODER_CONTACT # Nominatim exige identificar la aplicación con un correo de contacto
+        value: soporte@tecnoandes.pe

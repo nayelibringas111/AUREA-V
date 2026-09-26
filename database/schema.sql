@@ -381,5 +381,54 @@ ALTER TABLE "audit_logs" ENABLE ROW LEVEL SECURITY;
 
 UPDATE alembic_version SET version_num='0002' WHERE alembic_version.version_num = '0001';
 
+-- Running upgrade 0002 -> 0003
+
+CREATE TABLE login_sessions (
+    id SERIAL NOT NULL, 
+    user_id INTEGER, 
+    identifier VARCHAR(255), 
+    method VARCHAR(20) NOT NULL, 
+    status VARCHAR(20) NOT NULL, 
+    reason VARCHAR(255), 
+    face_distance FLOAT, 
+    brightness FLOAT, 
+    ip_address VARCHAR(64), 
+    user_agent VARCHAR(255), 
+    latitude FLOAT, 
+    longitude FLOAT, 
+    accuracy_m FLOAT, 
+    location_source VARCHAR(20), 
+    country VARCHAR(80), 
+    department VARCHAR(120), 
+    province VARCHAR(120), 
+    district VARCHAR(120), 
+    address VARCHAR(255), 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+    PRIMARY KEY (id), 
+    FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE SET NULL
+);
+
+CREATE INDEX ix_login_sessions_created_at ON login_sessions (created_at);
+
+CREATE INDEX ix_login_sessions_identifier ON login_sessions (identifier);
+
+CREATE INDEX ix_login_sessions_user_id ON login_sessions (user_id);
+
+ALTER TABLE users ADD COLUMN dni VARCHAR(8);
+
+ALTER TABLE users ADD COLUMN face_descriptors JSON;
+
+ALTER TABLE users ADD COLUMN photo TEXT;
+
+ALTER TABLE users ADD COLUMN face_enrolled_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE users ADD COLUMN biometric_consent_at TIMESTAMP WITH TIME ZONE;
+
+CREATE UNIQUE INDEX ix_users_dni ON users (dni);
+
+ALTER TABLE "login_sessions" ENABLE ROW LEVEL SECURITY;
+
+UPDATE alembic_version SET version_num='0003' WHERE alembic_version.version_num = '0002';
+
 COMMIT;
 

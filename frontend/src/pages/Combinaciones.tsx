@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Play, Plus, Trash2 } from 'lucide-react'
+import { Gauge, Play, Plus, Sigma, Trash2 } from 'lucide-react'
+import { ModuleTabs, useTab } from '@/components/ModuleTabs'
 import { useState } from 'react'
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { axisProps, ChartTooltip, INK, SERIES } from '@/components/charts'
@@ -147,13 +148,15 @@ function GenericCombination() {
 }
 
 export default function Combinaciones() {
+  const [tab, setTab] = useTab(['indice', 'libre'] as const, 'indice')
   return (
     <>
       <PageHeader title="Combinaciones lineales" description="Indicadores ponderados: el índice de desempeño empresarial y combinaciones libres de vectores o matrices." />
-      <div className="space-y-6">
-        <PerformanceIndex />
-        <GenericCombination />
-      </div>
+      <ModuleTabs value={tab} onChange={setTab} items={[
+        { value: 'indice', label: 'Índice de desempeño', icon: <Gauge className="size-4" /> },
+        { value: 'libre', label: 'Combinación libre', icon: <Sigma className="size-4" /> },
+      ]} />
+      {tab === 'indice' ? <PerformanceIndex /> : <GenericCombination />}
     </>
   )
 }

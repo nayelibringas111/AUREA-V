@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus, Power, Tags } from 'lucide-react'
+import { Package, Pencil, Plus, Power, Tags } from 'lucide-react'
+import { ModuleTabs, useTab } from '@/components/ModuleTabs'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -81,7 +82,32 @@ function CategoryModal({ open, onClose }: { open: boolean; onClose: () => void }
   )
 }
 
+function Categorias({ onNew }: { onNew: () => void }) {
+  const cats = useQuery({ queryKey: ['categories'], queryFn: productApi.categories })
+  const products = useQuery({ queryKey: ['products'], queryFn: productApi.list })
+  return (
+    <Card title="Categorías" actions={<Button size="sm" icon={<Plus className="size-3.5" />} onClick={onNew}>Nueva categoría</Button>}>
+      {cats.isLoading && <Spinner />}
+      {cats.data && (
+        <Table>
+          <thead><tr><Th>Categoría</Th><Th>Descripción</Th><Th className="text-right">Productos</Th></tr></thead>
+          <tbody>
+            {cats.data.map((c) => (
+              <tr key={c.id}>
+                <Td className="font-medium">{c.name}</Td>
+                <Td className="text-muted">{c.description}</Td>
+                <Td className="num text-right">{products.data?.filter((p) => p.category_id === c.id).length ?? '—'}</Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </Card>
+  )
+}
+
 export default function Productos() {
+  const [tab, setTab] = useTab(['productos', 'categorias'] as const, 'productos')
   const qc = useQueryClient()
   const { data, isLoading, error } = useQuery({ queryKey: ['products'], queryFn: productApi.list })
   const [editing, setEditing] = useState<Product | null>(null)
@@ -104,7 +130,12 @@ export default function Productos() {
           </>
         }
       />
-      <Card>
+      <ModuleTabs value={tab} onChange={setTab} items={[
+        { value: 'productos', label: 'Productos', icon: <Package className="size-4" /> },
+        { value: 'categorias', label: 'Categorías', icon: <Tags className="size-4" /> },
+      ]} />
+      {tab === 'categorias' && <Categorias onNew={() => setCatOpen(true)} />}
+      {tab === 'productos' && <Card>
         {isLoading && <Spinner />}
         {error && <ErrorBox message={errorMessage(error)} />}
         {data && (
@@ -133,7 +164,7 @@ export default function Productos() {
             </tbody>
           </Table>
         )}
-      </Card>
+      </Card>}
       <ProductModal product={editing} open={open} onClose={() => setOpen(false)} />
       <CategoryModal open={catOpen} onClose={() => setCatOpen(false)} />
     </>

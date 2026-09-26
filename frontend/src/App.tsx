@@ -21,6 +21,7 @@ const Reportes = lazy(() => import('@/pages/Reportes'))
 const Usuarios = lazy(() => import('@/pages/Usuarios'))
 const Auditoria = lazy(() => import('@/pages/Auditoria'))
 const Configuracion = lazy(() => import('@/pages/Configuracion'))
+const CarnetPage = lazy(() => import('@/pages/CarnetPage'))
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -44,6 +45,7 @@ function Guard({ module, children }: { module: string; children: ReactNode }) {
 
 const routes: [string, string, ReactNode][] = [
   ['dashboard', 'dashboard', <Dashboard />],
+  ['carnet', 'carnet', <CarnetPage />],
   ['empresa', 'empresa', <Empresa />],
   ['sucursales', 'sucursales', <Sucursales />],
   ['productos', 'productos', <Productos />],

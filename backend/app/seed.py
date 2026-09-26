@@ -24,6 +24,7 @@ from app.models import (
     Company,
     Inventory,
     InventoryMovement,
+    LoginSession,
     Product,
     Role,
     Sale,
@@ -64,11 +65,25 @@ PRODUCTS = [  # sku, name, category, price, cost, rango de cantidad por venta, p
     ("P-005", "Mouse", "Periféricos", 60, 28, (1, 6), 0.75),
 ]
 
-USERS = [
-    ("admin", settings.ADMIN_EMAIL, "Administrador General", ADMIN),
-    ("analista", "analista@tecnoandes.pe", "María Torres (Analista)", ANALYST),
-    ("consulta", "gerencia@tecnoandes.pe", "Luis Ramírez (Gerencia)", VIEWER),
+USERS = [  # clave, correo, nombre, rol, DNI
+    ("admin", settings.ADMIN_EMAIL, "Administrador General", ADMIN, "70000001"),
+    ("analista", "analista@tecnoandes.pe", "María Torres (Analista)", ANALYST, "70000002"),
+    ("consulta", "gerencia@tecnoandes.pe", "Luis Ramírez (Gerencia)", VIEWER, "70000003"),
 ]
+
+# Ubicaciones de ejemplo para el historial de accesos (departamento, provincia, distrito, dirección, lat, lon)
+DEMO_LOCATIONS = {
+    "admin": [("Lima", "Lima", "Santiago de Surco", "Avenida Javier Prado Este 4200", -12.0866, -76.9745),
+              ("Lima", "Lima", "Miraflores", "Avenida José Larco 1150", -12.1300, -77.0297)],
+    "analista": [("Lima", "Lima", "San Isidro", "Avenida Rivera Navarrete 501", -12.0931, -77.0226),
+                 ("Lima", "Lima", "Santiago de Surco", "Avenida Javier Prado Este 4200", -12.0866, -76.9745)],
+    "consulta": [("Arequipa", "Arequipa", "Yanahuara", "Avenida Ejército 710", -16.3920, -71.5447),
+                 ("Lima", "Lima", "San Isidro", "Calle Las Begonias 415", -12.0960, -77.0280)],
+}
+ACTIVITY_WEIGHT = {"admin": 6, "analista": 9, "consulta": 3}
+DEMO_MODULES = {"admin": ["usuarios", "sucursales", "productos", "ventas", "reportes"],
+                "analista": ["ventas", "matrices", "operaciones", "vectores", "inventario"],
+                "consulta": ["reportes"]}
 
 CUSTOMERS = ["Cliente final", "Colegio San Martín", "Estudio Contable Ríos", "Clínica Santa Rosa",
              "Municipalidad Distrital", "Constructora Andina", "Universidad Regional", "Hotel Plaza"]
@@ -98,6 +113,7 @@ def ensure_roles(db: Session) -> dict[str, Role]:
 def seed(db: Session) -> bool:
     roles = ensure_roles(db)
     if db.scalar(select(Company).where(Company.ruc == COMPANY["ruc"])):
+        backfill_dni(db)
         db.commit()
         return False
 
@@ -108,12 +124,12 @@ def seed(db: Session) -> bool:
     db.flush()
 
     users = {}
-    for key, email, name, role in USERS:
+    for key, email, name, role, dni in USERS:
         pwd = settings.ADMIN_PASSWORD if key == "admin" else settings.DEMO_USERS_PASSWORD
         u = db.scalar(select(User).where(User.email == email))
         if u is None:
             u = User(email=email, full_name=name, hashed_password=hash_password(pwd), role_id=roles[role].id,
-                     company_id=company.id)
+                     company_id=company.id, dni=dni)
             db.add(u)
         users[key] = u
     db.flush()
@@ -233,10 +249,42 @@ def seed(db: Session) -> bool:
     for op in demo_ops:
         operation_service.execute(db, admin, op)
 
+    seed_access_history(db, users, rng)
     db.add(AuditLog(user_id=admin.id, user_email=admin.email, action="seed", module="sistema",
                     detail={"empresa": company.name, "ventas": len(sales)}))
     db.commit()
     return True
+
+
+def backfill_dni(db: Session) -> None:
+    """Asigna los DNI de demostración a instalaciones anteriores a la versión con biometría."""
+    for _, email, _, _, dni in USERS:
+        u = db.scalar(select(User).where(User.email == email))
+        if u is not None and u.dni is None and db.scalar(select(User).where(User.dni == dni)) is None:
+            u.dni = dni
+
+
+def seed_access_history(db: Session, users: dict[str, User], rng: random.Random) -> None:
+    """Accesos y actividad de los últimos 7 días para el carnet y el módulo de auditoría."""
+    now = dt.datetime.now(dt.UTC)
+    for key, u in users.items():
+        for day in range(7, 0, -1):
+            if rng.random() < 0.2:
+                continue
+            base = now - dt.timedelta(days=day) + dt.timedelta(hours=rng.randint(-3, 3))
+            dep, prov, dist, addr, lat, lon = rng.choice(DEMO_LOCATIONS[key])
+            db.add(LoginSession(
+                user_id=u.id, identifier=u.email, method="password", status="success", ip_address="190.12.34.56",
+                user_agent="Mozilla/5.0", latitude=lat, longitude=lon, accuracy_m=25, location_source="gps",
+                country="Perú", department=dep, province=prov, district=dist, address=addr, created_at=base,
+            ))
+            db.add(AuditLog(user_id=u.id, user_email=u.email, action="login", module="auth", ip_address="190.12.34.56",
+                            detail={"metodo": "password", "departamento": dep, "distrito": dist}, created_at=base))
+            for k in range(rng.randint(1, ACTIVITY_WEIGHT[key])):
+                db.add(AuditLog(user_id=u.id, user_email=u.email, action=rng.choice(["create", "update", "execute", "view"]),
+                                module=rng.choice(DEMO_MODULES[key]), ip_address="190.12.34.56",
+                                created_at=base + dt.timedelta(minutes=5 * (k + 1))))
+    db.flush()
 
 
 def main() -> None:

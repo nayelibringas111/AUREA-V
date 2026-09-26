@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Briefcase, Play } from 'lucide-react'
+import { Briefcase, Play, SlidersHorizontal } from 'lucide-react'
+import { ModuleTabs, useTab } from '@/components/ModuleTabs'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { emptyOperand, OperandPicker, toOperand, type OperandState } from '@/components/OperandPicker'
@@ -33,6 +34,7 @@ export default function Operaciones() {
   const [result, setResult] = useState<Operation | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState(lastPeriods(2)[1])
+  const [tab, setTab] = useTab(['casos', 'manual'] as const, 'casos')
   const spec = SPEC[type]
   const kinds = type === 'matrix_multiply' ? (['matrix', secondKind] as Kind[]) : spec.kinds
 
@@ -96,6 +98,11 @@ export default function Operaciones() {
   return (
     <>
       <PageHeader title="Operaciones" description="Seleccione la operación, los operandos (guardados o manuales) y ejecútela. El cálculo se realiza en Python + NumPy y queda registrado en el historial." />
+      <ModuleTabs value={tab} onChange={(t) => { setTab(t); setResult(null); setError(null) }} items={[
+        { value: 'casos', label: 'Casos empresariales', icon: <Briefcase className="size-4" /> },
+        { value: 'manual', label: 'Operación personalizada', icon: <SlidersHorizontal className="size-4" /> },
+      ]} />
+      {tab === 'casos' && (<>
 
       <Card
         title={<span className="flex items-center gap-2"><Briefcase className="size-4 text-accent" /> Casos empresariales</span>}
@@ -128,6 +135,14 @@ export default function Operaciones() {
         </div>
       </Card>
 
+      <Card title="Resultado" subtitle={result?.description ?? undefined}>
+        {error && <ErrorBox message={`Operación rechazada: ${error}`} />}
+        {preset.isPending && <p className="text-sm text-muted">Construyendo matrices desde la base de datos…</p>}
+        {!error && !result && !preset.isPending && <p className="text-sm text-muted">Elija un caso empresarial para ver el resultado.</p>}
+        {result && <OperationResultView op={result} />}
+      </Card>
+      </>)}
+      {tab === 'manual' && (
       <div className="grid gap-6 lg:grid-cols-5">
         <Card title="Configurar operación" className="lg:col-span-2">
           <div className="space-y-4">
@@ -167,11 +182,12 @@ export default function Operaciones() {
         <Card title="Resultado" className="lg:col-span-3" subtitle={result?.description ?? undefined}>
           {error && <ErrorBox message={`Operación rechazada: ${error}`} />}
           {preset.isPending && <p className="text-sm text-muted">Construyendo matrices desde la base de datos…</p>}
-          {!error && !result && !preset.isPending && <p className="text-sm text-muted">Ejecute una operación o un caso empresarial para ver el resultado.</p>}
+          {!error && !result && <p className="text-sm text-muted">Configure y ejecute una operación para ver el resultado.</p>}
           {result && <OperationResultView op={result} />}
           {error && <p className="mt-3 text-xs text-muted">La operación rechazada también queda registrada en el historial con estado “error”.</p>}
         </Card>
       </div>
+      )}
     </>
   )
 }

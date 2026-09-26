@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, func
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -30,4 +30,16 @@ class User(Base):
     last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    # Identificación y biometría
+    dni: Mapped[str | None] = mapped_column(String(8), unique=True, index=True)
+    # Lista de descriptores faciales (vectores de 128 componentes). No se guardan imágenes del escaneo.
+    face_descriptors: Mapped[list | None] = mapped_column(JSON, deferred=True)
+    photo: Mapped[str | None] = mapped_column(Text, deferred=True)  # miniatura JPEG (data URL) para el carnet
+    face_enrolled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    biometric_consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     role: Mapped[Role] = relationship(back_populates="users", lazy="joined")
+
+    @property
+    def face_enrolled(self) -> bool:
+        return self.face_enrolled_at is not None
