@@ -180,7 +180,7 @@ export function Carnet({ data, match }: { data: CarnetData; match?: FaceMatch | 
               {data.recent_sessions.slice(0, 4).map((r) => (
                 <li key={r.id} className="flex items-center justify-between gap-2 py-2 text-xs">
                   <span className="min-w-0 truncate">
-                    {r.district ?? '—'}{r.department ? `, ${r.department}` : ''}
+                    {r.district ?? (r.department ? '' : 'Ubicación no disponible')}{r.department ? `${r.district ? ', ' : ''}${r.department}` : ''}
                     <span className="ml-1 text-muted">· {r.method === 'face' ? 'facial' : 'contraseña'}</span>
                   </span>
                   <span className="shrink-0 text-[10px] text-muted">{dateTime(r.created_at)}</span>
