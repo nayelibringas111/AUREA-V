@@ -1,0 +1,38 @@
+# Render Blueprint – MatrixFlow Enterprise API (FastAPI + NumPy)
+# En Render: New → Blueprint → seleccione este repositorio. Render leerá este archivo.
+# Las variables marcadas con `sync: false` se le pedirán al crear el Blueprint.
+services:
+  - type: web
+    name: matrixflow-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    region: virginia # misma zona que Supabase us-east-1 → menor latencia
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    # Aplica migraciones, carga la empresa si no existe y arranca la API
+    startCommand: alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL # Supabase → Connect → Session pooler (puerto 5432)
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS # URL de Vercel, p. ej. https://matrixflow-enterprise.vercel.app
+        sync: false
+      - key: CORS_ORIGIN_REGEX # permite las URLs de preview de su proyecto en Vercel
+        value: https://matrixflow-enterprise.*\.vercel\.app
+      - key: ADMIN_EMAIL
+        value: admin@tecnoandes.pe
+      - key: ADMIN_PASSWORD # contraseña inicial del administrador
+        sync: false
+      - key: DEMO_USERS_PASSWORD # contraseña de analista@ y gerencia@
+        sync: false
+      - key: SEED_ON_START
+        value: "true"
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"

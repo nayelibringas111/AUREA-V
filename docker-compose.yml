@@ -1,0 +1,43 @@
+# Entorno local completo: PostgreSQL + API + frontend
+#   docker compose up --build
+#   Frontend: http://localhost:5173   API: http://localhost:8000/docs
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: matrixflow
+      POSTGRES_PASSWORD: matrixflow
+      POSTGRES_DB: matrixflow
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U matrixflow"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://matrixflow:matrixflow@db:5432/matrixflow
+      SECRET_KEY: clave-local-de-desarrollo
+      CORS_ORIGINS: http://localhost:5173
+      ADMIN_PASSWORD: Admin2026!
+      DEMO_USERS_PASSWORD: Demo2026!
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npx vite --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+      VITE_SHOW_DEMO_USERS: "true"
+    volumes: [./frontend:/app, /app/node_modules]
+    ports: ["5173:5173"]
+    depends_on: [api]
+
+volumes:
+  pgdata:
