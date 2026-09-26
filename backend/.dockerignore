@@ -3,4 +3,4 @@ __pycache__
 .env
 .pytest_cache
 .ruff_cache
-test_matrixflow.db
+test_aurea.db

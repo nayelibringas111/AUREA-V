@@ -12,12 +12,12 @@ import httpx
 
 from app.core.config import settings
 
-logger = logging.getLogger("matrixflow.geo")
+logger = logging.getLogger("aurea.geo")
 TIMEOUT = httpx.Timeout(3.5)
 
 
 def _headers() -> dict:
-    return {"User-Agent": f"MatrixFlowEnterprise/1.0 ({settings.GEOCODER_CONTACT})", "Accept-Language": "es"}
+    return {"User-Agent": f"AureaV/1.0 ({settings.GEOCODER_CONTACT})", "Accept-Language": "es"}
 
 
 def _clean(value: str | None) -> str | None:

@@ -162,7 +162,7 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute -bottom-10 -right-10 grid grid-cols-6 gap-3 opacity-20">
           {Array.from({ length: 36 }).map((_, i) => <div key={i} className={`size-10 rounded-md ${i % 7 === 0 ? 'bg-accent' : 'bg-primary'}`} />)}
         </div>
-        <p className="text-xs text-slate-500">© {new Date().getFullYear()} MatrixFlow Enterprise</p>
+        <p className="text-xs text-slate-500">© {new Date().getFullYear()} Aurea V</p>
       </div>
 
       <div className="flex items-center justify-center p-6">

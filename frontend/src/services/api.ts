@@ -2,12 +2,12 @@ import axios, { AxiosError } from 'axios'
 
 /**
  * URL base de la API.
- *  - Producción (Vercel): definir VITE_API_URL, p. ej. https://matrixflow-api.onrender.com/api/v1
+ *  - Producción (Vercel): definir VITE_API_URL, p. ej. https://aurea-v-api.onrender.com/api/v1
  *  - Desarrollo: se usa /api/v1 y Vite lo redirige a http://localhost:8000
  */
 export const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || '/api/v1'
 
-const TOKEN_KEY = 'mf_token'
+const TOKEN_KEY = 'av_token'
 
 export const tokenStore = {
   get: () => {

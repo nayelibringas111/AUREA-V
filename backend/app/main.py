@@ -26,7 +26,7 @@ from app.core.config import settings
 from app.core.database import SessionLocal
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("matrixflow")
+logger = logging.getLogger("aurea")
 
 app = FastAPI(
     title=settings.APP_NAME,

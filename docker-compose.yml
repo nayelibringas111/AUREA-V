@@ -5,20 +5,20 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: matrixflow
-      POSTGRES_PASSWORD: matrixflow
-      POSTGRES_DB: matrixflow
+      POSTGRES_USER: aurea
+      POSTGRES_PASSWORD: aurea
+      POSTGRES_DB: aurea
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U matrixflow"]
+      test: ["CMD-SHELL", "pg_isready -U aurea"]
       interval: 5s
       retries: 10
 
   api:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql://matrixflow:matrixflow@db:5432/matrixflow
+      DATABASE_URL: postgresql://aurea:aurea@db:5432/aurea
       SECRET_KEY: clave-local-de-desarrollo
       CORS_ORIGINS: http://localhost:5173
       ADMIN_PASSWORD: Admin2026!

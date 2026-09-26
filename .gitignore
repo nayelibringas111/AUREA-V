@@ -10,7 +10,7 @@ __pycache__/
 venv/
 .pytest_cache/
 .ruff_cache/
-backend/test_matrixflow.db
+backend/test_aurea.db
 
 # Node
 node_modules/

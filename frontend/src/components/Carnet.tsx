@@ -67,7 +67,7 @@ export function Carnet({ data, match }: { data: CarnetData; match?: FaceMatch | 
             <div className="flex items-center gap-2">
               <img src="/favicon.svg" alt="" className="size-7" />
               <div className="leading-tight">
-                <div className="text-xs font-bold tracking-wide">{data.company?.name?.toUpperCase() ?? 'MATRIXFLOW'}</div>
+                <div className="text-xs font-bold tracking-wide">{data.company?.name?.toUpperCase() ?? 'AUREA V'}</div>
                 <div className="text-[10px] text-slate-400">RUC {data.company?.ruc ?? '—'}</div>
               </div>
             </div>

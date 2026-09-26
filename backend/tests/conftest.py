@@ -1,7 +1,7 @@
 import os
 
 # Debe configurarse antes de importar la aplicación.
-os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", "sqlite:///./test_matrixflow.db")
+os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", "sqlite:///./test_aurea.db")
 os.environ.setdefault("SECRET_KEY", "clave-de-pruebas")
 
 import pytest  # noqa: E402

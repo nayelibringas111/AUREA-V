@@ -1,4 +1,4 @@
-# MatrixFlow Enterprise
+# Aurea V
 
 Sistema web empresarial de análisis de **ventas, inventario e indicadores mediante álgebra lineal**, implementado para la empresa **TecnoAndes Distribuciones S.A.C.** (5 sucursales: Lima, Arequipa, Trujillo, Cusco y Piura · 5 productos: Laptop, PC, Monitor, Teclado y Mouse).
 
@@ -27,17 +27,17 @@ Tiempo aproximado: 15 minutos. Todo funciona con los planes gratuitos.
 ### 0. Subir el código a GitHub
 
 ```bash
-cd matrixflow-enterprise
-git init && git add . && git commit -m "MatrixFlow Enterprise v1.0"   # (si aún no tiene commits)
+cd aurea-v
+git init && git add . && git commit -m "Aurea V 1.0"   # (si aún no tiene commits)
 git branch -M main
-git remote add origin https://github.com/<su-usuario>/matrixflow-enterprise.git
+git remote add origin https://github.com/<su-usuario>/aurea-v.git
 git push -u origin main
 ```
 
 ### 1. Supabase (base de datos PostgreSQL)
 
 1. Entre a <https://supabase.com> → **New project**.
-   - Nombre: `matrixflow` · Región: **East US (North Virginia)** · Anote la **Database Password**.
+   - Nombre: `aurea` · Región: **East US (North Virginia)** · Anote la **Database Password**.
 2. Cuando el proyecto esté listo, pulse **Connect** (arriba) → pestaña **Connection string** → modo **Session pooler**.
 3. Copie la cadena. Tiene esta forma:
    ```
@@ -54,7 +54,7 @@ git push -u origin main
 ### 2. Render (API FastAPI)
 
 1. Entre a <https://render.com> → **New +** → **Blueprint** → conecte su cuenta de GitHub y elija el repositorio.
-2. Render detecta `render.yaml` y crea el servicio **matrixflow-api**. Le pedirá estas variables:
+2. Render detecta `render.yaml` y crea el servicio **aurea-v-api**. Le pedirá estas variables:
 
    | Variable | Valor |
    |---|---|
@@ -65,7 +65,7 @@ git push -u origin main
 
    `SECRET_KEY` se genera automáticamente.
 3. Pulse **Apply**. El primer despliegue tarda 3–5 min: instala dependencias, crea las 20 tablas, carga ~2 200 ventas históricas de TecnoAndes y arranca.
-4. Verifique: `https://matrixflow-api.onrender.com/health` debe responder `{"status":"ok","database":true,...}` y `…/docs` muestra la documentación interactiva (Swagger).
+4. Verifique: `https://aurea-v-api.onrender.com/health` debe responder `{"status":"ok","database":true,...}` y `…/docs` muestra la documentación interactiva (Swagger).
    (El nombre exacto de su URL aparece en el panel de Render.)
 
 > El plan gratuito de Render “duerme” el servicio tras 15 min sin uso; la primera petición posterior tarda ~1 minuto. El login muestra un mensaje explicándolo si ocurre.
@@ -78,20 +78,20 @@ git push -u origin main
 
    | Variable | Valor |
    |---|---|
-   | `VITE_API_URL` | `https://matrixflow-api.onrender.com/api/v1` (su URL de Render **+ `/api/v1`**) |
+   | `VITE_API_URL` | `https://aurea-v-api.onrender.com/api/v1` (su URL de Render **+ `/api/v1`**) |
    | `VITE_SHOW_DEMO_USERS` | `true` para mostrar los accesos de demostración en el login (o `false`) |
 
-4. **Deploy**. Anote la URL final, p. ej. `https://matrixflow-enterprise.vercel.app`.
+4. **Deploy**. Anote la URL final, p. ej. `https://aurea-v.vercel.app`.
 
 ### 4. Conectar ambos (CORS)
 
-En Render → **matrixflow-api → Environment** cambie `CORS_ORIGINS` por la URL de Vercel (sin `/` final) y guarde; Render redesplegará solo:
+En Render → **aurea-v-api → Environment** cambie `CORS_ORIGINS` por la URL de Vercel (sin `/` final) y guarde; Render redesplegará solo:
 
 ```
-CORS_ORIGINS=https://matrixflow-enterprise.vercel.app
+CORS_ORIGINS=https://aurea-v.vercel.app
 ```
 
-`CORS_ORIGIN_REGEX` ya permite las URLs de *preview* de Vercel cuyo nombre empiece por `matrixflow-enterprise`. Si su proyecto de Vercel tiene otro nombre, ajuste esa expresión regular.
+`CORS_ORIGIN_REGEX` ya permite las URLs de *preview* de Vercel cuyo nombre empiece por `aurea-v`. Si su proyecto de Vercel tiene otro nombre, ajuste esa expresión regular.
 
 ### 5. ¡Listo! Ingrese
 
@@ -177,7 +177,7 @@ GitHub Actions (`.github/workflows/ci.yml`) ejecuta todo automáticamente en cad
 ## 📁 Estructura
 
 ```
-matrixflow-enterprise/
+aurea-v/
 ├── frontend/                 React + TypeScript (Vercel)
 │   ├── src/
 │   │   ├── components/       UI, layout, pestañas, escáner facial, carnet, matrices, gráficos

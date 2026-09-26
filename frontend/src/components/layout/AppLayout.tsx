@@ -119,8 +119,10 @@ export function Logo({ light = true }: { light?: boolean }) {
     <div className="flex items-center gap-2.5">
       <img src="/favicon.svg" alt="" className="size-8" />
       <div className="leading-tight">
-        <div className={cn('text-sm font-bold tracking-wide', light ? 'text-white' : 'text-ink')}>MATRIXFLOW</div>
-        <div className="text-[10px] font-semibold tracking-[0.2em] text-accent">ENTERPRISE</div>
+        <div className={cn('text-base font-bold tracking-[0.15em]', light ? 'text-white' : 'text-ink')}>
+          AUREA <span className="text-accent">V</span>
+        </div>
+        <div className={cn('text-[10px] font-medium tracking-[0.12em]', light ? 'text-slate-400' : 'text-muted')}>ANALÍTICA EMPRESARIAL</div>
       </div>
     </div>
   )
@@ -180,7 +182,7 @@ export default function AppLayout() {
             <Outlet />
           </div>
           <footer className="px-8 pb-6 text-center text-xs text-muted">
-            <FileText className="mr-1 inline size-3" /> MatrixFlow Enterprise v1.1 · TecnoAndes Distribuciones S.A.C.
+            <FileText className="mr-1 inline size-3" /> Aurea V · versión 1.1 · TecnoAndes Distribuciones S.A.C.
           </footer>
         </main>
       </div>

@@ -115,7 +115,7 @@ def top_users(db: Session, cid: int, days: int = 7, limit: int = 5) -> list[dict
 
 
 def carnet_code(user: User) -> tuple[str, str]:
-    code = f"MF-{user.company_id or 0:02d}-{user.id:05d}"
+    code = f"AV-{user.company_id or 0:02d}-{user.id:05d}"
     sig = hmac.new(settings.SECRET_KEY.encode(), f"{code}|{user.dni}|{user.email}".encode(), hashlib.sha256)
     return code, sig.hexdigest()[:12].upper()
 

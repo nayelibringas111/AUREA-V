@@ -51,7 +51,7 @@ def test_face_login_success_with_location(client, enrolled_analyst):
     assert (loc["department"], loc["district"]) == ("Lima", "Santiago de Surco")
     assert loc["address"].startswith("Avenida Javier Prado")
     assert len(carnet["activity_7d"]) == 7 and carnet["user"]["dni"] == "70000002"
-    assert carnet["top_users"] and carnet["code"].startswith("MF-")
+    assert carnet["top_users"] and carnet["code"].startswith("AV-")
     assert carnet["user"]["photo"].startswith("data:image/jpeg")
 
 

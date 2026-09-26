@@ -1,4 +1,4 @@
-# MatrixFlow Enterprise – Documentación técnica
+# Aurea V – Documentación técnica
 
 Implementación del *Plan Maestro de Desarrollo v1.0* para **TecnoAndes Distribuciones S.A.C.** (RUC 20601234571), empresa comercializadora de equipos tecnológicos con cinco sucursales.
 
@@ -209,7 +209,7 @@ Cada intento se guarda en la tabla **`login_sessions`** (método, resultado, dis
 
 ### 10.3 Carnet (`GET /auth/carnet`, pantalla `/carnet`)
 
-Identificación (foto, nombre, DNI, rol, código `MF-EE-NNNNN`, vigencia y código de verificación HMAC) + auditoría:
+Identificación (foto, nombre, DNI, rol, código `AV-EE-NNNNN`, vigencia y código de verificación HMAC) + auditoría:
 ubicación del acceso actual, actividad de los últimos 7 días (eventos, accesos y operaciones por día, zona `America/Lima`),
 módulos más usados, **usuarios más activos** y accesos anteriores. Descargable en PNG o imprimible/PDF. Se muestra
 automáticamente al finalizar el reconocimiento facial.

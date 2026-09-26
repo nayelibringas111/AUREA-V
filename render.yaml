@@ -1,9 +1,9 @@
-# Render Blueprint – MatrixFlow Enterprise API (FastAPI + NumPy)
+# Render Blueprint – Aurea V API (FastAPI + NumPy)
 # En Render: New → Blueprint → seleccione este repositorio. Render leerá este archivo.
 # Las variables marcadas con `sync: false` se le pedirán al crear el Blueprint.
 services:
   - type: web
-    name: matrixflow-api
+    name: aurea-v-api
     runtime: python
     rootDir: backend
     plan: free
@@ -22,10 +22,10 @@ services:
         sync: false
       - key: SECRET_KEY
         generateValue: true
-      - key: CORS_ORIGINS # URL de Vercel, p. ej. https://matrixflow-enterprise.vercel.app
+      - key: CORS_ORIGINS # URL de Vercel, p. ej. https://aurea-v.vercel.app
         sync: false
       - key: CORS_ORIGIN_REGEX # permite las URLs de preview de su proyecto en Vercel
-        value: https://matrixflow-enterprise.*\.vercel\.app
+        value: https://aurea-v.*\.vercel\.app
       - key: ADMIN_EMAIL
         value: admin@tecnoandes.pe
       - key: ADMIN_PASSWORD # contraseña inicial del administrador

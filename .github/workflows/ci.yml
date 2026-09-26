@@ -12,12 +12,12 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: matrixflow
-          POSTGRES_PASSWORD: matrixflow
-          POSTGRES_DB: matrixflow_test
+          POSTGRES_USER: aurea
+          POSTGRES_PASSWORD: aurea
+          POSTGRES_DB: aurea_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U matrixflow" --health-interval 5s --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U aurea" --health-interval 5s --health-timeout 5s --health-retries 10
     defaults:
       run:
         working-directory: backend
@@ -31,11 +31,11 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: Migraciones Alembic sobre PostgreSQL
         env:
-          DATABASE_URL: postgresql://matrixflow:matrixflow@localhost:5432/matrixflow_test
+          DATABASE_URL: postgresql://aurea:aurea@localhost:5432/aurea_test
         run: alembic upgrade head && alembic downgrade base
       - name: Pruebas (unitarias, API, seguridad, aceptación)
         env:
-          TEST_DATABASE_URL: postgresql://matrixflow:matrixflow@localhost:5432/matrixflow_test
+          TEST_DATABASE_URL: postgresql://aurea:aurea@localhost:5432/aurea_test
         run: pytest -q
 
   frontend:

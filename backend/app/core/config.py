@@ -8,12 +8,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    APP_NAME: str = "MatrixFlow Enterprise API"
+    APP_NAME: str = "Aurea V API"
     ENVIRONMENT: str = "development"
     API_PREFIX: str = "/api/v1"
 
     # Base de datos. En Supabase usar la cadena "Session pooler" (IPv4, puerto 5432).
-    DATABASE_URL: str = "postgresql+psycopg://matrixflow:matrixflow@localhost:5432/matrixflow"
+    DATABASE_URL: str = "postgresql+psycopg://aurea:aurea@localhost:5432/aurea"
 
     # Seguridad
     SECRET_KEY: str = "cambie-esta-clave-en-produccion"

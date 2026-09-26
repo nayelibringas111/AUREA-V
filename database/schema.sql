@@ -1,5 +1,5 @@
 -- =====================================================================
--- MatrixFlow Enterprise – Esquema PostgreSQL (compatible con Supabase)
+-- Aurea V – Esquema PostgreSQL (compatible con Supabase)
 -- Generado desde las migraciones Alembic (backend/alembic/versions).
 --
 -- NORMALMENTE NO NECESITA EJECUTAR ESTE ARCHIVO: el backend en Render ejecuta
