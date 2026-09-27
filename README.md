@@ -1,4 +1,4 @@
-# Aurea V
+# AUREA V
 
 Sistema web empresarial de análisis de **ventas, inventario e indicadores mediante álgebra lineal**, implementado para la empresa **TecnoAndes Distribuciones S.A.C.** (5 sucursales: Lima, Arequipa, Trujillo, Cusco y Piura · 5 productos: Laptop, PC, Monitor, Teclado y Mouse).
 
